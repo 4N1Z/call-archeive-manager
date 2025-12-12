@@ -5,7 +5,7 @@ import RecordingList from './components/RecordingList';
 import AudioPlayer from './components/AudioPlayer';
 import AddRecordingForm from './components/AddRecordingForm';
 import { MOCK_WORKGROUPS } from './constants';
-import { Search, Filter, Database, RefreshCw, Lock, ShieldCheck, PlayCircle, BarChart3, AlertTriangle, LogOut, Plus } from 'lucide-react';
+import { Search, Filter, Database, RefreshCw, Lock, ShieldCheck, PlayCircle, BarChart3, AlertTriangle, LogOut, Plus, X } from 'lucide-react';
 
 // ----------------------------------------------------------------------
 // Simple Auth Implementation
@@ -79,10 +79,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       Workgroup: '',
       Direction: '',
     });
+    // Automatically search after clearing to show all records
+    setTimeout(() => handleSearch(), 0);
   };
 
   const handleAddSuccess = () => {
     handleSearch(); // Refresh the list
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return !!(
+      filters.InteractionID ||
+      filters.AgentName ||
+      filters.DateFrom ||
+      filters.DateTo ||
+      filters.DNIS ||
+      filters.ANI ||
+      filters.Workgroup ||
+      filters.Direction
+    );
   };
 
   return (
@@ -252,20 +268,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
             </div>
           </div>
 
-          <div className="mt-8 flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Reset Filters
-            </button>
-            <button
-              onClick={handleSearch}
-              className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-[1.02]"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Search Records
-            </button>
+          <div className="mt-8 flex items-center justify-between pt-4 border-t border-gray-100">
+            {/* Active Filters Indicator */}
+            {hasActiveFilters() && (
+              <div className="flex items-center space-x-2 text-sm text-indigo-600">
+                <Filter className="w-4 h-4" />
+                <span className="font-medium">Filters Active</span>
+              </div>
+            )}
+            {!hasActiveFilters() && <div></div>}
+            
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              {hasActiveFilters() && (
+                <button
+                  onClick={clearFilters}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Clear Filters
+                </button>
+              )}
+              <button
+                onClick={handleSearch}
+                className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-[1.02]"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Search Records
+              </button>
+            </div>
           </div>
         </section>
 
