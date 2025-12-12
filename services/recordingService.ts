@@ -1,22 +1,80 @@
 import sql from './db';
-import { Recording } from '../types';
+import { Recording, SearchFilters } from '../types';
 
-export const getRecordings = async (): Promise<Recording[]> => {
+export const getRecordings = async (filters?: SearchFilters): Promise<Recording[]> => {
     try {
-        const { rows } = await sql.query('SELECT * FROM archiveindex_temp');
+        let query = 'SELECT * FROM archiveindex_temp WHERE 1=1';
+        const params: any[] = [];
+        let paramCount = 1;
 
-        // Map database fields to our TypeScript interface if they differ slightly, 
-        // or return directly if they match. Assuming exact match for now based on types.ts
-        // Adjusting casing if DB returns lowercase columns but types are PascalCase.
-        // Postgres usually returns lowercase column names unless quoted in creation.
-        // Let's assume we might need to map them if the DB has snake_case or lowercase.
+        // Build dynamic query based on filters
+        if (filters) {
+            // Filter by Interaction ID (searches in attributes)
+            if (filters.InteractionID) {
+                query += ` AND (attributes ILIKE $${paramCount} OR recordingid ILIKE $${paramCount})`;
+                params.push(`%${filters.InteractionID}%`);
+                paramCount++;
+            }
 
-        // However, if the user followed the schema strictly, they might have quoted identifiers.
-        // For safety, let's map safely.
+            // Filter by Agent/Participant Name
+            if (filters.AgentName) {
+                query += ` AND (firstparticipant ILIKE $${paramCount} OR otherparticipants ILIKE $${paramCount})`;
+                params.push(`%${filters.AgentName}%`);
+                paramCount++;
+            }
 
+            // Filter by Date From
+            if (filters.DateFrom) {
+                query += ` AND recordingdate >= $${paramCount}`;
+                params.push(filters.DateFrom);
+                paramCount++;
+            }
+
+            // Filter by Date To
+            if (filters.DateTo) {
+                query += ` AND recordingdate <= $${paramCount}`;
+                params.push(`${filters.DateTo} 23:59:59`); // Include entire day
+                paramCount++;
+            }
+
+            // Filter by DNIS
+            if (filters.DNIS) {
+                query += ` AND dnis ILIKE $${paramCount}`;
+                params.push(`%${filters.DNIS}%`);
+                paramCount++;
+            }
+
+            // Filter by ANI
+            if (filters.ANI) {
+                query += ` AND ani ILIKE $${paramCount}`;
+                params.push(`%${filters.ANI}%`);
+                paramCount++;
+            }
+
+            // Filter by Workgroup
+            if (filters.Workgroup) {
+                query += ` AND workgroup = $${paramCount}`;
+                params.push(filters.Workgroup);
+                paramCount++;
+            }
+
+            // Filter by Direction
+            if (filters.Direction) {
+                query += ` AND direction = $${paramCount}`;
+                params.push(filters.Direction);
+                paramCount++;
+            }
+        }
+
+        // Order by most recent first
+        query += ' ORDER BY recordingdate DESC NULLS LAST';
+
+        const { rows } = await sql.query(query, params);
+
+        // Map database fields to TypeScript interface
         return rows.map((row: any) => ({
             RecordingID: row.recordingid,
-            RecordingDate: new Date(row.recordingdate).toISOString(), // Ensure ISO string format
+            RecordingDate: row.recordingdate ? new Date(row.recordingdate).toISOString() : new Date().toISOString(),
             Attributes: row.attributes,
             Direction: row.direction,
             FilePath: row.filepath,

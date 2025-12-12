@@ -54,9 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
     setLoading(true);
     setHasSearched(true);
     try {
-      // In a real implementation with Neon DB, you would call your API here
-      // const response = await fetch('/api/recordings', { method: 'POST', body: JSON.stringify(filters) });
-      const results = await getRecordings();
+      const results = await getRecordings(filters);
       setRecordings(results);
     } catch (error) {
       console.error("Failed to fetch recordings", error);
