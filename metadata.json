@@ -1,0 +1,5 @@
+{
+  "name": "CallArchiver",
+  "description": "A comprehensive dashboard to search, listen, and download archived audio recordings from AWS S3.",
+  "requestFramePermissions": []
+}
