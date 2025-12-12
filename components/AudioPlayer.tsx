@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Recording } from '../types';
-import { Play, Pause, Volume2, VolumeX, Download, X, List } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Download, X, AlertCircle } from 'lucide-react';
 
 interface AudioPlayerProps {
   recording: Recording | null;
@@ -13,15 +13,36 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ recording, onClose }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (recording && audioRef.current) {
+      setIsLoading(true);
+      setError(null);
+      setCurrentTime(0);
+      setDuration(0);
+      
       audioRef.current.src = recording.FilePath;
-      audioRef.current.play().catch(e => console.error("Auto-play failed", e));
-      setIsPlaying(true);
+      audioRef.current.load();
+      
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        })
+        .catch(e => {
+          console.error("Auto-play failed", e);
+          setIsPlaying(false);
+          setIsLoading(false);
+          // Auto-play might be blocked, but that's okay
+        });
     } else {
       setIsPlaying(false);
       setCurrentTime(0);
+      setDuration(0);
+      setIsLoading(false);
+      setError(null);
     }
   }, [recording]);
 
@@ -38,10 +59,24 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ recording, onClose }) => {
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
-      if (!Number.isNaN(audioRef.current.duration)) {
-        setDuration(audioRef.current.duration);
-      }
     }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current && !Number.isNaN(audioRef.current.duration)) {
+      setDuration(audioRef.current.duration);
+      setIsLoading(false);
+    }
+  };
+
+  const handleError = () => {
+    setError('Failed to load audio file');
+    setIsLoading(false);
+    setIsPlaying(false);
+  };
+
+  const handleCanPlay = () => {
+    setIsLoading(false);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +119,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ recording, onClose }) => {
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
         onEnded={() => setIsPlaying(false)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={handleLoadedMetadata}
+        onCanPlay={handleCanPlay}
+        onError={handleError}
+        preload="metadata"
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -107,27 +145,46 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ recording, onClose }) => {
 
           {/* Controls Section */}
           <div className="flex flex-col items-center w-full sm:w-2/4 space-y-1">
-            <div className="flex items-center space-x-6">
-              <button 
-                onClick={togglePlay}
-                className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition-colors shadow-sm"
-              >
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
-              </button>
-            </div>
-            
-            <div className="w-full flex items-center space-x-3 text-xs text-gray-500 font-medium">
-              <span className="w-10 text-right">{formatTime(currentTime)}</span>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                value={currentTime}
-                onChange={handleSeek}
-                className="flex-grow h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              />
-              <span className="w-10">{formatTime(duration)}</span>
-            </div>
+            {error ? (
+              <div className="flex items-center space-x-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center space-x-6">
+                  <button 
+                    onClick={togglePlay}
+                    disabled={isLoading || !!error}
+                    className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+                  </button>
+                  {isLoading && (
+                    <span className="text-xs text-gray-500">Loading...</span>
+                  )}
+                </div>
+                
+                <div className="w-full flex items-center space-x-3 text-xs text-gray-500 font-medium">
+                  <span className="w-10 text-right tabular-nums">{formatTime(currentTime)}</span>
+                  <div className="flex-grow relative">
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 100}
+                      value={currentTime}
+                      onChange={handleSeek}
+                      disabled={isLoading || !!error}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%, #e5e7eb 100%)`
+                      }}
+                    />
+                  </div>
+                  <span className="w-10 tabular-nums">{formatTime(duration)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Actions Section */}
