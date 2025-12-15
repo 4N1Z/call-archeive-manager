@@ -12,6 +12,10 @@ export interface Recording {
   FromConnection: string;
   Workgroup: string;
   Duration: number; // in seconds
+  MediaType: string;
+  RecordingType: string;
+  FileSize: number;
+  Tags: string;
 }
 
 export interface SearchFilters {
@@ -23,6 +27,9 @@ export interface SearchFilters {
   ANI: string;
   Workgroup: string;
   Direction: string;
+  MediaType: string;
+  RecordingType: string;
+  Tags: string;
 }
 
 export type SortField = 'RecordingDate' | 'Duration' | 'RecordingID';

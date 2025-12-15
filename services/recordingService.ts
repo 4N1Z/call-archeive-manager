@@ -64,6 +64,27 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
                 params.push(filters.Direction);
                 paramCount++;
             }
+            
+            // Filter by MediaType
+            if (filters.MediaType) {
+                query += ` AND mediatype ILIKE $${paramCount}`;
+                params.push(`%${filters.MediaType}%`);
+                paramCount++;
+            }
+
+            // Filter by RecordingType
+            if (filters.RecordingType) {
+                query += ` AND recordingtype ILIKE $${paramCount}`;
+                params.push(`%${filters.RecordingType}%`);
+                paramCount++;
+            }
+
+            // Filter by Tags
+            if (filters.Tags) {
+                query += ` AND tags ILIKE $${paramCount}`;
+                params.push(`%${filters.Tags}%`);
+                paramCount++;
+            }
         }
 
         // Order by most recent first
@@ -86,6 +107,10 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
             FromConnection: row.fromconnection,
             Workgroup: row.workgroup,
             Duration: row.duration,
+            MediaType: row.mediatype,
+            RecordingType: row.recordingtype,
+            FileSize: row.filesize,
+            Tags: row.tags,
         }));
     } catch (error) {
         console.error('Error fetching recordings:', error);

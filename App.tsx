@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SearchFilters, Recording } from './types';
 import { getRecordings } from './services/recordingService';
-import RecordingList from './components/RecordingList';
+import { RecordingsDataTable } from './components/RecordingsDataTable';
 import AudioPlayer from './components/AudioPlayer';
 import AddRecordingForm from './components/AddRecordingForm';
 import { MOCK_WORKGROUPS } from './constants';
@@ -36,6 +36,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
     ANI: '',
     Workgroup: '',
     Direction: '',
+    MediaType: '',
+    RecordingType: '',
+    Tags: '',
   });
 
   const [recordings, setRecordings] = useState<Recording[]>([]);
@@ -78,6 +81,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       ANI: '',
       Workgroup: '',
       Direction: '',
+      MediaType: '',
+      RecordingType: '',
+      Tags: '',
     });
     // Automatically search after clearing to show all records
     setTimeout(() => handleSearch(), 0);
@@ -97,7 +103,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       filters.DNIS ||
       filters.ANI ||
       filters.Workgroup ||
-      filters.Direction
+      filters.Direction ||
+      filters.MediaType ||
+      filters.RecordingType ||
+      filters.Tags
     );
   };
 
@@ -216,6 +225,45 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
               </select>
             </div>
 
+            <div className="space-y-1">
+              <label htmlFor="Tags" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Tags</label>
+              <input
+                type="text"
+                name="Tags"
+                id="Tags"
+                placeholder="Search tags..."
+                value={filters.Tags}
+                onChange={handleInputChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="MediaType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Media Type</label>
+              <input
+                type="text"
+                name="MediaType"
+                id="MediaType"
+                placeholder="e.g. audio/mp3"
+                value={filters.MediaType}
+                onChange={handleInputChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="RecordingType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Recording Type</label>
+              <input
+                type="text"
+                name="RecordingType"
+                id="RecordingType"
+                placeholder="e.g. normal"
+                value={filters.RecordingType}
+                onChange={handleInputChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+              />
+            </div>
+
             {/* Row 2 */}
             <div className="space-y-1">
               <label htmlFor="ANI" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">ANI (From)</label>
@@ -320,8 +368,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
             </button>
           </div>
 
-          <RecordingList
-            recordings={recordings}
+          <RecordingsDataTable
+            data={recordings}
             loading={loading}
             onPlay={setCurrentRecording}
           />
