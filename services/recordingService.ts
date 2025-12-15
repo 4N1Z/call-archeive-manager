@@ -9,9 +9,16 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
 
         // Build dynamic query based on filters
         if (filters) {
-            // Filter by Interaction ID (searches in attributes)
+            // Filter by Recording ID
+            if (filters.RecordingID) {
+                query += ` AND recordingid ILIKE $${paramCount}`;
+                params.push(`%${filters.RecordingID}%`);
+                paramCount++;
+            }
+
+            // Filter by Interaction ID (searches in attributes only)
             if (filters.InteractionID) {
-                query += ` AND (attributes ILIKE $${paramCount} OR recordingid ILIKE $${paramCount})`;
+                query += ` AND attributes ILIKE $${paramCount}`;
                 params.push(`%${filters.InteractionID}%`);
                 paramCount++;
             }
@@ -83,6 +90,20 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
             if (filters.Tags) {
                 query += ` AND tags ILIKE $${paramCount}`;
                 params.push(`%${filters.Tags}%`);
+                paramCount++;
+            }
+
+            // Filter by Duration Min
+            if (filters.MinDuration) {
+                query += ` AND duration >= $${paramCount}`;
+                params.push(parseInt(filters.MinDuration));
+                paramCount++;
+            }
+
+            // Filter by Duration Max
+            if (filters.MaxDuration) {
+                query += ` AND duration <= $${paramCount}`;
+                params.push(parseInt(filters.MaxDuration));
                 paramCount++;
             }
         }

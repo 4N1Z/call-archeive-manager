@@ -28,6 +28,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   const [filters, setFilters] = useState<SearchFilters>({
+    RecordingID: '',
     InteractionID: '',
     AgentName: '',
     DateFrom: '',
@@ -39,6 +40,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
     MediaType: '',
     RecordingType: '',
     Tags: '',
+    MinDuration: '',
+    MaxDuration: '',
   });
 
   const [recordings, setRecordings] = useState<Recording[]>([]);
@@ -46,6 +49,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   const [currentRecording, setCurrentRecording] = useState<Recording | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Initial load
   useEffect(() => {
@@ -73,6 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
 
   const clearFilters = () => {
     setFilters({
+      RecordingID: '',
       InteractionID: '',
       AgentName: '',
       DateFrom: '',
@@ -84,6 +89,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       MediaType: '',
       RecordingType: '',
       Tags: '',
+      MinDuration: '',
+      MaxDuration: '',
     });
     // Automatically search after clearing to show all records
     setTimeout(() => handleSearch(), 0);
@@ -96,6 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   // Check if any filters are active
   const hasActiveFilters = () => {
     return !!(
+      filters.RecordingID ||
       filters.InteractionID ||
       filters.AgentName ||
       filters.DateFrom ||
@@ -106,8 +114,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
       filters.Direction ||
       filters.MediaType ||
       filters.RecordingType ||
-      filters.Tags
+      filters.Tags ||
+      filters.MinDuration ||
+      filters.MaxDuration
     );
+  };
+
+  const toggleAdvancedFilters = () => {
+    setShowAdvancedFilters(prev => !prev);
   };
 
   return (
@@ -166,7 +180,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5">
-            {/* Row 1 */}
+            {/* Basic Filters */}
+            <div className="space-y-1">
+              <label htmlFor="RecordingID" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Recording ID</label>
+              <input
+                type="text"
+                name="RecordingID"
+                id="RecordingID"
+                placeholder="e.g. REC-176553..."
+                value={filters.RecordingID}
+                onChange={handleInputChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+              />
+            </div>
+
             <div className="space-y-1">
               <label htmlFor="InteractionID" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Interaction ID</label>
               <input
@@ -225,96 +252,135 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="Tags" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Tags</label>
-              <input
-                type="text"
-                name="Tags"
-                id="Tags"
-                placeholder="Search tags..."
-                value={filters.Tags}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="MediaType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Media Type</label>
-              <input
-                type="text"
-                name="MediaType"
-                id="MediaType"
-                placeholder="e.g. audio/mp3"
-                value={filters.MediaType}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="RecordingType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Recording Type</label>
-              <input
-                type="text"
-                name="RecordingType"
-                id="RecordingType"
-                placeholder="e.g. normal"
-                value={filters.RecordingType}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
-              />
-            </div>
-
-            {/* Row 2 */}
-            <div className="space-y-1">
-              <label htmlFor="ANI" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">ANI (From)</label>
-              <input
-                type="text"
-                name="ANI"
-                id="ANI"
-                placeholder="Caller Phone..."
-                value={filters.ANI}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="DNIS" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">DNIS (To)</label>
-              <input
-                type="text"
-                name="DNIS"
-                id="DNIS"
-                placeholder="Dialed Number..."
-                value={filters.DNIS}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="DateFrom" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Date From</label>
-              <input
-                type="date"
-                name="DateFrom"
-                id="DateFrom"
-                value={filters.DateFrom}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border text-gray-600"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="DateTo" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Date To</label>
-              <input
-                type="date"
-                name="DateTo"
-                id="DateTo"
-                value={filters.DateTo}
-                onChange={handleInputChange}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border text-gray-600"
-              />
+            {/* Advanced Filters Toggle */}
+            <div className="col-span-full flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+              <button
+                onClick={toggleAdvancedFilters}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-all"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
+              </button>
             </div>
           </div>
+
+          {showAdvancedFilters && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Row 2 - Advanced Filters */}
+              <div className="space-y-1">
+                <label htmlFor="ANI" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">ANI (From)</label>
+                <input
+                  type="text"
+                  name="ANI"
+                  id="ANI"
+                  placeholder="Caller Phone..."
+                  value={filters.ANI}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="DNIS" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">DNIS (To)</label>
+                <input
+                  type="text"
+                  name="DNIS"
+                  id="DNIS"
+                  placeholder="Dialed Number..."
+                  value={filters.DNIS}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="DateFrom" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Date From</label>
+                <input
+                  type="date"
+                  name="DateFrom"
+                  id="DateFrom"
+                  value={filters.DateFrom}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border text-gray-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="DateTo" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Date To</label>
+                <input
+                  type="date"
+                  name="DateTo"
+                  id="DateTo"
+                  value={filters.DateTo}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border text-gray-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="MinDuration" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Min Duration (seconds)</label>
+                <input
+                  type="number"
+                  name="MinDuration"
+                  id="MinDuration"
+                  placeholder="e.g. 60"
+                  value={filters.MinDuration}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="MaxDuration" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Max Duration (seconds)</label>
+                <input
+                  type="number"
+                  name="MaxDuration"
+                  id="MaxDuration"
+                  placeholder="e.g. 300"
+                  value={filters.MaxDuration}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="Tags" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Tags</label>
+                <input
+                  type="text"
+                  name="Tags"
+                  id="Tags"
+                  placeholder="Search tags..."
+                  value={filters.Tags}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="MediaType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Media Type</label>
+                <input
+                  type="text"
+                  name="MediaType"
+                  id="MediaType"
+                  placeholder="e.g. audio/mp3"
+                  value={filters.MediaType}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="RecordingType" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Recording Type</label>
+                <input
+                  type="text"
+                  name="RecordingType"
+                  id="RecordingType"
+                  placeholder="e.g. normal"
+                  value={filters.RecordingType}
+                  onChange={handleInputChange}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="mt-8 flex items-center justify-between pt-4 border-t border-gray-100">
             {/* Active Filters Indicator */}
@@ -325,7 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
               </div>
             )}
             {!hasActiveFilters() && <div></div>}
-            
+
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
               {hasActiveFilters() && (

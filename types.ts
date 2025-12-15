@@ -19,6 +19,7 @@ export interface Recording {
 }
 
 export interface SearchFilters {
+  RecordingID: string;
   InteractionID: string;
   AgentName: string;
   DateFrom: string;
@@ -30,6 +31,8 @@ export interface SearchFilters {
   MediaType: string;
   RecordingType: string;
   Tags: string;
+  MinDuration: string;
+  MaxDuration: string;
 }
 
 export type SortField = 'RecordingDate' | 'Duration' | 'RecordingID';
