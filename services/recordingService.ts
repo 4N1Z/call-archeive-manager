@@ -9,6 +9,13 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
 
         // Build dynamic query based on filters
         if (filters) {
+            // Filter by ID
+            if (filters.ID) {
+                query += ` AND id = $${paramCount}`;
+                params.push(parseInt(filters.ID));
+                paramCount++;
+            }
+
             // Filter by Recording ID
             if (filters.RecordingID) {
                 query += ` AND recordingid ILIKE $${paramCount}`;
@@ -16,10 +23,10 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
                 paramCount++;
             }
 
-            // Filter by Interaction ID (searches in attributes only)
-            if (filters.InteractionID) {
+            // Filter by Attributes
+            if (filters.Attributes) {
                 query += ` AND attributes ILIKE $${paramCount}`;
-                params.push(`%${filters.InteractionID}%`);
+                params.push(`%${filters.Attributes}%`);
                 paramCount++;
             }
 
@@ -115,6 +122,7 @@ export const getRecordings = async (filters?: SearchFilters): Promise<Recording[
 
         // Map database fields to TypeScript interface
         return rows.map((row: any) => ({
+            ID: row.id,
             RecordingID: row.recordingid,
             RecordingDate: row.recordingdate ? new Date(row.recordingdate).toISOString() : new Date().toISOString(),
             Attributes: row.attributes,

@@ -84,6 +84,11 @@ export function RecordingsDataTable({
       },
     },
     {
+      accessorKey: "ID",
+      header: "ID",
+      cell: ({ row }) => <span className="font-mono text-xs text-gray-600">{row.getValue("ID")}</span>
+    },
+    {
       accessorKey: "Direction",
       header: "Dir",
       cell: ({ row }) => {

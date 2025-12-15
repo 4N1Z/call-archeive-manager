@@ -1,4 +1,5 @@
 export interface Recording {
+  ID: number;
   RecordingID: string;
   RecordingDate: string; // ISO String
   Attributes: string; // Contains InteractionIDKey
@@ -19,8 +20,9 @@ export interface Recording {
 }
 
 export interface SearchFilters {
+  ID: string;
   RecordingID: string;
-  InteractionID: string;
+  Attributes: string;
   AgentName: string;
   DateFrom: string;
   DateTo: string;

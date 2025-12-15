@@ -28,8 +28,9 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   const [filters, setFilters] = useState<SearchFilters>({
+    ID: '',
     RecordingID: '',
-    InteractionID: '',
+    Attributes: '',
     AgentName: '',
     DateFrom: '',
     DateTo: '',
@@ -77,8 +78,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
 
   const clearFilters = () => {
     setFilters({
+      ID: '',
       RecordingID: '',
-      InteractionID: '',
+      Attributes: '',
       AgentName: '',
       DateFrom: '',
       DateTo: '',
@@ -103,8 +105,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
   // Check if any filters are active
   const hasActiveFilters = () => {
     return !!(
+      filters.ID ||
       filters.RecordingID ||
-      filters.InteractionID ||
+      filters.Attributes ||
       filters.AgentName ||
       filters.DateFrom ||
       filters.DateTo ||
@@ -182,6 +185,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5">
             {/* Basic Filters */}
             <div className="space-y-1">
+              <label htmlFor="ID" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">ID</label>
+              <input
+                type="number"
+                name="ID"
+                id="ID"
+                placeholder="e.g. 1, 2, 3..."
+                value={filters.ID}
+                onChange={handleInputChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
+              />
+            </div>
+
+            <div className="space-y-1">
               <label htmlFor="RecordingID" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Recording ID</label>
               <input
                 type="text"
@@ -195,13 +211,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, user }) => {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="InteractionID" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Interaction ID</label>
+              <label htmlFor="Attributes" className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Attributes</label>
               <input
                 type="text"
-                name="InteractionID"
-                id="InteractionID"
-                placeholder="Search Attributes..."
-                value={filters.InteractionID}
+                name="Attributes"
+                id="Attributes"
+                placeholder="Search attributes..."
+                value={filters.Attributes}
                 onChange={handleInputChange}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 px-3 border"
               />
